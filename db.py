@@ -8,4 +8,4 @@ client = AsyncIOMotorClient(mongoURL, tls=True,)
 database = client["ExpenseDB"]
 
 user_collection = database["users"]
-expense_collection = database["expenses"]
+expense_collection = database["expense tracker"]
