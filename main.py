@@ -16,27 +16,87 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# @app.middleware("http")
+# async def auth_middleware(request: Request, call_next):
+#     if request.method == "OPTIONS":
+#         return await call_next(request)
+
+#     if request.url.path in ["/", "/login", "/register", "/docs", "/openapi.json","/redoc"]:
+#         return await call_next(request)
+
+#     token = request.headers.get("Authorization")
+
+#     if not token:
+#         return JSONResponse(content={"message": "Token missing"}, status_code=401)
+
+#     token = token.replace("Bearer ", "")
+#     payload = decode_access_token(token, "your_secret_key")
+
+#     if not payload:
+#         return JSONResponse(content={"message": "Invalid token"}, status_code=403)
+
+#     request.state.user = payload
+#     return await call_next(request)
+
+
+
+
+
+
+
+
+
+
+
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
+
     if request.method == "OPTIONS":
         return await call_next(request)
 
-    if request.url.path in ["/", "/login", "/register", "/docs"]:
+    path = request.url.path
+
+    # Public routes
+    if (
+        path == "/"
+        or path == "/login"
+        or path == "/register"
+        or path.startswith("/docs")
+        or path.startswith("/openapi.json")
+        or path.startswith("/redoc")
+    ):
         return await call_next(request)
 
     token = request.headers.get("Authorization")
 
     if not token:
-        return JSONResponse(content={"message": "Token missing"}, status_code=401)
+        return JSONResponse(
+            status_code=401,
+            content={"message": "Token missing"}
+        )
 
-    token = token.replace("Bearer ", "")
+    if token.startswith("Bearer "):
+        token = token[7:]
+
     payload = decode_access_token(token, "your_secret_key")
 
     if not payload:
-        return JSONResponse(content={"message": "Invalid token"}, status_code=403)
+        return JSONResponse(
+            status_code=403,
+            content={"message": "Invalid token"}
+        )
 
     request.state.user = payload
+
     return await call_next(request)
+
+
+
+
+
+
+
 
 
 app.include_router(user_router)
